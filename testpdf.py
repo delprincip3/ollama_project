@@ -18,6 +18,7 @@ from pathlib import Path
 import re
 from typing import Optional
 from metrics import MetricsManager
+from chromadb.config import Settings
 
 class UserManager:
     def __init__(self):
@@ -107,6 +108,7 @@ class DocumentQA:
         self.max_file_size = 10 * 1024 * 1024  # 10MB limite
         self.allowed_extensions = {'.pdf'}
         self.sanitize_pattern = re.compile(r'[^a-zA-Z0-9-_\.]')
+        self.metrics = MetricsManager()  # Aggiungo l'istanza di MetricsManager
 
     def _cleanup_loop(self):
         """Loop di pulizia che controlla e rimuove i database inattivi"""
@@ -277,7 +279,7 @@ class DocumentQA:
             
             # Creiamo un database vettoriale univoco per questo PDF
             self.current_db = self._get_db_name(self.pdf_path)
-            print(f"\n📁 Creazione database vettoriale: {self.current_db}")
+            print(f"\n🔄 Creazione database vettoriale: {self.current_db}")
             print(f"📄 Caricamento PDF da: {self.pdf_path}")
             
             loader = PyPDFLoader(self.pdf_path)
@@ -290,16 +292,34 @@ class DocumentQA:
             print(f"✅ Documento diviso in {len(pages)} chunks")
             
             print("\n💾 Creazione database vettoriale...")
+            # Se esiste già un database con lo stesso nome, lo rimuoviamo
+            if os.path.exists(self.current_db):
+                import shutil
+                shutil.rmtree(self.current_db)
+            
+            # Creiamo un nuovo client Chroma con le impostazioni corrette
+            client_settings = Settings(
+                chroma_server_host=os.getenv("CHROMA_SERVER_HOST", "192.168.200.20"),
+                chroma_server_http_port=int(os.getenv("CHROMA_SERVER_PORT", "8000")),
+                anonymized_telemetry=False,
+                allow_reset=True,
+                is_persistent=True
+            )
+            
+            # Forziamo la chiusura di eventuali istanze esistenti
+            try:
+                import chromadb
+                chromadb.Client().reset()
+            except:
+                pass
+            
             vectordb = Chroma.from_documents(
                 documents=pages,
                 embedding=embeddings,
                 persist_directory=self.current_db,
                 collection_name="pdf_collection",
                 collection_metadata={"hnsw:space": "cosine"},
-                client_settings={
-                    "chroma_server_host": os.getenv("CHROMA_SERVER_HOST", "192.168.200.20"),
-                    "chroma_server_http_port": int(os.getenv("CHROMA_SERVER_PORT", "8000"))
-                }
+                client_settings=client_settings
             )
             print("✅ Database vettoriale creato e salvato")
 
@@ -345,7 +365,7 @@ class DocumentQA:
             start_time = time.time()
             # Aggiorna il timestamp di ultima attività
             self.last_activity = time.time()
-            if self.current_db:
+            if self.current_db and os.path.exists(self.current_db):
                 os.utime(self.current_db)
             
             result = self.qa_system({"question": domanda})
