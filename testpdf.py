@@ -295,7 +295,11 @@ class DocumentQA:
                 embedding=embeddings,
                 persist_directory=self.current_db,
                 collection_name="pdf_collection",
-                collection_metadata={"hnsw:space": "cosine"}
+                collection_metadata={"hnsw:space": "cosine"},
+                client_settings={
+                    "chroma_server_host": os.getenv("CHROMA_SERVER_HOST", "192.168.200.20"),
+                    "chroma_server_http_port": int(os.getenv("CHROMA_SERVER_PORT", "8000"))
+                }
             )
             print("✅ Database vettoriale creato e salvato")
 
