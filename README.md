@@ -1,67 +1,113 @@
-# Ollama Project
+# Ollama Project - Chatbot Documentale con Gestione Utenti
 
-Questo progetto implementa un sistema di QA (Question Answering) basato su documenti PDF utilizzando LangChain e Ollama.
+Un'applicazione web che permette di caricare documenti PDF e interagire con essi attraverso un'interfaccia chat, utilizzando modelli di linguaggio locale tramite Ollama.
 
-## Requisiti
+## 🚀 Funzionalità
+
+- **Gestione Utenti**: Sistema di login con timeout automatico
+- **Caricamento PDF**: Supporto per documenti PDF fino a 10MB
+- **Chat Interattiva**: Interfaccia per fare domande sui documenti caricati
+- **Monitoraggio**: Integrazione con InfluxDB per il tracciamento delle metriche
+- **Database Vettoriale**: Utilizzo di ChromaDB per l'indicizzazione dei documenti
+- **Multi-architettura**: Supporto per sistemi ARM64 e AMD64
+
+## 🛠️ Prerequisiti
 
 - Docker
-- Python 3.11+
-- Accesso a InfluxDB
-- Accesso a ChromaDB
+- Ollama (con modello Mistral)
+- InfluxDB (opzionale, per le metriche)
+- ChromaDB (opzionale, per il database vettoriale)
 
-## Configurazione
+## 📦 Installazione
 
-1. Crea un file `.env` con le seguenti variabili:
+1. Clona il repository:
+```bash
+git clone https://github.com/delprincip3/ollama_project.git
+cd ollama_project
 ```
-INFLUXDB_URL=http://192.168.200.111:8086
-INFLUXDB_TOKEN=your_token
-INFLUXDB_ORG=infobasic
-INFLUXDB_BUCKET=delprincipe
 
-# Configurazioni Chroma
-CHROMA_SERVER_HOST=192.168.200.20
+2. Crea il file `.env` basandoti su `.env.example`:
+```bash
+cp .env.example .env
+```
+
+3. Modifica il file `.env` con le tue configurazioni:
+```env
+INFLUXDB_URL=http://localhost:8086
+INFLUXDB_TOKEN=your_influxdb_token_here
+INFLUXDB_ORG=your_organization
+INFLUXDB_BUCKET=your_bucket
+
+CHROMA_SERVER_HOST=localhost
 CHROMA_SERVER_PORT=8000
 ```
 
-## Esecuzione con Docker
-
+4. Avvia il container Docker:
 ```bash
-# Pull dell'immagine
-docker pull delprincp3/ollama_project:1.0.0
-
-# Esecuzione del container
 docker run -p 7860:7860 --env-file .env delprincp3/ollama_project:1.0.0
 ```
 
-L'applicazione sarà disponibile all'indirizzo: http://localhost:7860
+## 🌐 Utilizzo
 
-## Sviluppo
+1. Apri il browser e vai a `http://localhost:7860`
+2. Effettua il login con un nome utente
+3. Carica un documento PDF
+4. Inizia a fare domande sul documento
 
-Per lo sviluppo locale:
+## 🔧 Configurazione
 
-1. Crea un ambiente virtuale:
+### Variabili d'Ambiente
+
+- `INFLUXDB_URL`: URL del server InfluxDB
+- `INFLUXDB_TOKEN`: Token di accesso InfluxDB
+- `INFLUXDB_ORG`: Organizzazione InfluxDB
+- `INFLUXDB_BUCKET`: Bucket InfluxDB
+- `CHROMA_SERVER_HOST`: Host del server ChromaDB
+- `CHROMA_SERVER_PORT`: Porta del server ChromaDB
+
+### Timeout e Limiti
+
+- Timeout sessione: 10 minuti
+- Dimensione massima PDF: 10MB
+- Numero massimo utenti contemporanei: 2
+
+## 🐳 Docker
+
+L'immagine Docker è disponibile su Docker Hub:
 ```bash
-python -m venv venv
-source venv/bin/activate  # Su Windows: venv\Scripts\activate
+docker pull delprincp3/ollama_project:1.0.0
 ```
 
-2. Installa le dipendenze:
+### Build Locale
+
+Per costruire l'immagine localmente:
 ```bash
-pip install -r requirements.txt
+docker build -t ollama_project:local .
 ```
 
-3. Esegui l'applicazione:
-```bash
-python testpdf.py
-```
+## 📊 Metriche
 
-## GitHub Actions
+L'applicazione traccia automaticamente:
+- Numero di utenti attivi
+- Tempi di risposta delle query
+- Errori e eccezioni
 
-Il progetto include un workflow di GitHub Actions che:
-- Costruisce automaticamente l'immagine Docker
-- Supporta le architetture amd64 e arm64
-- Pusha l'immagine su Docker Hub
+## 🤝 Contribuire
 
-Per utilizzare il workflow, configura i seguenti secrets nel tuo repository GitHub:
-- `DOCKER_USERNAME`
-- `DOCKER_PASSWORD`
+1. Fork il repository
+2. Crea un branch per la tua feature (`git checkout -b feature/AmazingFeature`)
+3. Commit le tue modifiche (`git commit -m 'Add some AmazingFeature'`)
+4. Push sul branch (`git push origin feature/AmazingFeature`)
+5. Apri una Pull Request
+
+## 📝 Licenza
+
+Questo progetto è distribuito con licenza MIT. Vedi il file `LICENSE` per maggiori dettagli.
+
+## 🙏 Ringraziamenti
+
+- [Ollama](https://ollama.ai/) per i modelli di linguaggio locale
+- [LangChain](https://www.langchain.com/) per il framework di LLM
+- [Gradio](https://gradio.app/) per l'interfaccia web
+- [InfluxDB](https://www.influxdata.com/) per il monitoraggio
+- [ChromaDB](https://www.trychroma.com/) per il database vettoriale
